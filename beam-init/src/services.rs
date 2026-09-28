@@ -801,7 +801,13 @@ impl ServiceManager {
             | ServiceStatus::Frozen { process, pty, .. } => {
                 if let Some(pty) = pty {
                     match pty.master.try_clone() {
-                        Ok(fd) => match process.monitor_and_event.as_ref().unwrap().1.try_clone() {
+                        Ok(fd) => match process
+                            .monitor_and_event
+                            .as_ref()
+                            .expect("event pipe should exist when pty exists")
+                            .1
+                            .try_clone()
+                        {
                             Ok(fd2) => Ok((fd, OwnedFd::from(fd2))),
                             Err(err) if err.raw_os_error() == Some(libc::EMFILE) => {
                                 Err(ServiceError::TooManyOpenFiles)
